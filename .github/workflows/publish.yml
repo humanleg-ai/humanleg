@@ -17,6 +17,11 @@ on:
         required: true
         default: true
         type: boolean
+      mcp_registry:
+        description: "Publish the server entry to the official MCP Registry"
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -64,3 +69,44 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: python/dist/
+
+  mcp-registry:
+    if: inputs.confirmation == 'publish' && inputs.mcp_registry
+    runs-on: ubuntu-latest
+    environment: mcp-registry
+    env:
+      MCP_PUBLISHER_VERSION: v1.8.1
+    steps:
+      - uses: actions/checkout@v5
+      - name: Wait for the public npm package
+        run: |
+          for attempt in $(seq 1 50); do
+            version=$(npm view @humanleg/mcp-server@0.1.0 version 2>/dev/null || true)
+            if [ "$version" = "0.1.0" ]; then
+              exit 0
+            fi
+            echo "npm propagation pending ($attempt/50)"
+            sleep 30
+          done
+          exit 1
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Download and verify mcp-publisher
+        run: |
+          set -euo pipefail
+          os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+          arch="$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/')"
+          archive="mcp-publisher_${os}_${arch}.tar.gz"
+          base_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          curl --fail --location --silent --show-error --output "$archive" "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$archive.sigstore.json" "$base_url/$archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$archive"
+          tar xzf "$archive" mcp-publisher
+          rm -f "$archive" "$archive.sigstore.json"
+      - run: ./mcp-publisher validate
+      - run: ./mcp-publisher login github-oidc
+      - run: ./mcp-publisher publish

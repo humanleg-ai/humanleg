@@ -47,3 +47,14 @@ The pending publisher does not reserve the project name. Run the GitHub workflow
 4. Enter `publish` in the confirmation field.
 5. Select npm and/or PyPI.
 6. Verify the packages from clean environments before publishing the MCP Registry entry.
+
+## Official MCP Registry
+
+After `@humanleg/mcp-server` is publicly installable, rerun the same workflow with only **MCP Registry** selected. The job:
+
+1. waits for npm propagation;
+2. downloads the pinned official `mcp-publisher` release;
+3. verifies its Sigstore bundle;
+4. validates `server.json`;
+5. authenticates with GitHub Actions OIDC; and
+6. publishes `io.github.humanleg-ai/humanleg` without a long-lived registry secret.
