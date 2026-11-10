@@ -10,8 +10,7 @@ HumanLeg.ai lets an AI agent hand a bounded digital or real-world task to a trus
 repository contains the public SDKs, MCP server, API schema, examples and a synthetic local sandbox.
 It does not contain production marketplace, identity, fraud, payment or operator systems.
 
-> Status: `0.1.0` release candidate. Sandbox only. No real identity data, credentials, evidence or
-> funds.
+> Status: `0.1.x` public sandbox release. No real identity data, credentials, evidence or funds.
 
 View the standalone [platform architecture diagram](docs/architecture.html) for the public/private
 trust boundary and end-to-end task flow.

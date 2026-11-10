@@ -1,6 +1,7 @@
 {
   "name": "@humanleg/mcp-server",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "mcpName": "io.github.humanleg-ai/humanleg",
   "description": "MCP server that lets AI agents hand bounded tasks to HumanLeg.ai.",
   "license": "Apache-2.0",
   "type": "module",
