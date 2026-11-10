@@ -1,12 +1,16 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { HumanLegApiError, HumanLegClient } from "../packages/sdk/src/index.js";
 
 const port = 8790;
 const baseUrl = `http://127.0.0.1:${port}`;
+const mcpPort = 8791;
+const remoteMcpUrl = `http://127.0.0.1:${mcpPort}/mcp`;
 let sandbox: ChildProcess;
+let remoteMcp: ChildProcess;
 
 async function waitForSandbox(): Promise<void> {
   for (let attempt = 0; attempt < 30; attempt += 1) {
@@ -21,6 +25,19 @@ async function waitForSandbox(): Promise<void> {
   throw new Error("sandbox did not start");
 }
 
+async function waitForRemoteMcp(): Promise<void> {
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try {
+      const response = await fetch(`http://127.0.0.1:${mcpPort}/health`);
+      if (response.ok) return;
+    } catch {
+      // The remote MCP server may still be starting.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error("remote MCP server did not start");
+}
+
 beforeAll(async () => {
   sandbox = spawn(process.execPath, ["packages/sandbox/dist/server.js"], {
     cwd: process.cwd(),
@@ -28,13 +45,27 @@ beforeAll(async () => {
       ...process.env,
       PORT: String(port),
       HUMANLEG_AGENT_TOKEN: "sandbox-agent-token",
+      HUMANLEG_ENABLE_SETTLEMENT: "true",
     },
     stdio: "ignore",
   });
   await waitForSandbox();
+  remoteMcp = spawn(process.execPath, ["packages/mcp-server/dist/index.js"], {
+    cwd: process.cwd(),
+    env: {
+      ...process.env,
+      HUMANLEG_API_URL: baseUrl,
+      HUMANLEG_AGENT_TOKEN: "sandbox-agent-token",
+      HUMANLEG_MCP_TRANSPORT: "http",
+      HUMANLEG_MCP_PORT: String(mcpPort),
+    },
+    stdio: "ignore",
+  });
+  await waitForRemoteMcp();
 });
 
 afterAll(() => {
+  remoteMcp.kill("SIGTERM");
   sandbox.kill("SIGTERM");
 });
 
@@ -121,6 +152,23 @@ describe("MCP surface", () => {
       const names = tools.tools.map((tool) => tool.name);
       expect(names).toContain("humanleg_create_task");
       expect(names).toContain("humanleg_get_task");
+      expect(names).not.toContain("humanleg_fund_task");
+      expect(names).not.toContain("humanleg_publish_task");
+    } finally {
+      await mcp.close();
+    }
+  });
+
+  it("exposes the same safe tools over hosted Streamable HTTP", async () => {
+    const mcp = new Client({ name: "humanleg-remote-test", version: "0.1.0" });
+    try {
+      await mcp.connect(
+        new StreamableHTTPClientTransport(new URL(remoteMcpUrl)),
+      );
+      const tools = await mcp.listTools();
+      const names = tools.tools.map((tool) => tool.name);
+      expect(names).toContain("humanleg_create_fee_quote");
+      expect(names).toContain("humanleg_create_task");
       expect(names).not.toContain("humanleg_fund_task");
       expect(names).not.toContain("humanleg_publish_task");
     } finally {
