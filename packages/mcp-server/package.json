@@ -1,0 +1,36 @@
+{
+  "name": "@humanleg/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server that lets AI agents hand bounded tasks to HumanLeg.ai.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js"
+  },
+  "bin": {
+    "humanleg-mcp": "dist/index.js"
+  },
+  "dependencies": {
+    "@humanleg/sdk": "0.1.0",
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "zod": "^4.1.13"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/humanleg-ai/humanleg.git",
+    "directory": "packages/mcp-server"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "humanleg-open-source",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open developer tools for handing the last mile from AI agents to trusted humans.",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace @humanleg/sdk && npm run build --workspace @humanleg/sandbox && npm run build --workspace @humanleg/mcp-server",
+    "check": "npm run format:check && npm run license:check && npm run mcp:validate && npm run build && npm test && npm run pack:check",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "license:check": "node scripts/check-licenses.mjs",
+    "mcp:validate": "node scripts/validate-server-json.mjs",
+    "sandbox": "npm run start --workspace @humanleg/sandbox",
+    "mcp": "npm run start --workspace @humanleg/mcp-server",
+    "test": "vitest run",
+    "pack:check": "npm pack --dry-run --workspace @humanleg/sdk && npm pack --dry-run --workspace @humanleg/mcp-server && npm pack --dry-run --workspace @humanleg/sandbox"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "prettier": "^3.9.10",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.15"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

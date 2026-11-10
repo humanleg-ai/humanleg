@@ -1,0 +1,302 @@
+<!doctype html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HumanLeg.ai architecture</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f8fafc;
+    --fg: #172033;
+    --muted: #5b6475;
+    --line: #64748b;
+    --neutral: #e2e8f0;
+    --input: #bfdbfe;
+    --process: #c7d2fe;
+    --storage: #99f6e4;
+    --external: #fde68a;
+    --risk: #fecaca;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f172a;
+      --fg: #e5e7eb;
+      --muted: #a3adbd;
+      --line: #94a3b8;
+      --neutral: #334155;
+      --input: #1d4ed8;
+      --process: #4338ca;
+      --storage: #0f766e;
+      --external: #92400e;
+      --risk: #991b1b;
+    }
+  }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font:
+      14px/1.4 ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
+  main {
+    max-width: 1180px;
+    margin: 32px auto;
+    padding: 0 20px;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .title {
+    font-size: 22px;
+    font-weight: 650;
+    fill: var(--fg);
+  }
+  .label {
+    font-size: 14px;
+    font-weight: 650;
+    fill: var(--fg);
+  }
+  .small {
+    font-size: 12px;
+    fill: var(--muted);
+  }
+  .node {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .neutral {
+    fill: var(--neutral);
+  }
+  .input {
+    fill: var(--input);
+  }
+  .process {
+    fill: var(--process);
+  }
+  .storage {
+    fill: var(--storage);
+  }
+  .external {
+    fill: var(--external);
+  }
+  .risk {
+    fill: var(--risk);
+  }
+  .edge {
+    stroke: var(--line);
+    stroke-width: 1.5;
+    fill: none;
+  }
+  .zone {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1;
+    stroke-dasharray: 6 5;
+    opacity: 0.8;
+  }
+</style>
+<main>
+  <svg
+    viewBox="0 0 1160 690"
+    role="img"
+    aria-labelledby="diagram-title diagram-desc"
+  >
+    <title id="diagram-title">HumanLeg.ai platform architecture</title>
+    <desc id="diagram-desc">
+      AI agents use open source SDKs or MCP to submit bounded tasks. The managed
+      HumanLeg platform applies exact-version compliance review before funding
+      and publication, then routes approved work to human workers. Restricted
+      controls remain private.
+    </desc>
+    <defs>
+      <marker
+        id="arrow"
+        markerWidth="8"
+        markerHeight="8"
+        refX="7"
+        refY="4"
+        orient="auto"
+      >
+        <path d="M0,0 L8,4 L0,8 Z" fill="var(--line)" />
+      </marker>
+    </defs>
+
+    <text x="20" y="34" class="title">
+      HumanLeg.ai — human execution layer for AI agents
+    </text>
+    <text x="20" y="58" class="small">
+      Public integration surface on the left; managed trust and marketplace
+      controls on the right.
+    </text>
+
+    <rect x="20" y="90" width="285" height="500" rx="16" class="zone" />
+    <text x="38" y="118" class="label">Open source · Apache-2.0</text>
+    <rect
+      x="50"
+      y="150"
+      width="225"
+      height="78"
+      rx="12"
+      class="node external"
+    />
+    <text x="162" y="181" text-anchor="middle" class="label">
+      AI agent / workflow
+    </text>
+    <text x="162" y="202" text-anchor="middle" class="small">
+      OpenAI · LangGraph · CrewAI
+    </text>
+    <rect x="50" y="275" width="225" height="96" rx="12" class="node input" />
+    <text x="162" y="305" text-anchor="middle" class="label">
+      Developer integration
+    </text>
+    <text x="162" y="327" text-anchor="middle" class="small">
+      TypeScript/Python SDK · MCP
+    </text>
+    <text x="162" y="347" text-anchor="middle" class="small">
+      OpenAPI · framework examples
+    </text>
+    <rect x="50" y="420" width="225" height="94" rx="12" class="node neutral" />
+    <text x="162" y="451" text-anchor="middle" class="label">
+      Local synthetic sandbox
+    </text>
+    <text x="162" y="473" text-anchor="middle" class="small">
+      Deterministic review · fake funds
+    </text>
+    <text x="162" y="493" text-anchor="middle" class="small">
+      Settlement tools off by default
+    </text>
+
+    <rect x="340" y="90" width="800" height="500" rx="16" class="zone" />
+    <text x="358" y="118" class="label">
+      Managed HumanLeg platform · private controls
+    </text>
+    <rect
+      x="370"
+      y="170"
+      width="180"
+      height="82"
+      rx="12"
+      class="node process"
+    />
+    <text x="460" y="202" text-anchor="middle" class="label">Agent API</text>
+    <text x="460" y="224" text-anchor="middle" class="small">
+      Idempotency · task versions
+    </text>
+    <rect x="600" y="150" width="210" height="122" rx="12" class="node risk" />
+    <text x="705" y="181" text-anchor="middle" class="label">
+      Compliance gate
+    </text>
+    <text x="705" y="203" text-anchor="middle" class="small">
+      Exact version + SHA-256
+    </text>
+    <text x="705" y="223" text-anchor="middle" class="small">
+      Approve · reject · escalate
+    </text>
+    <text x="705" y="243" text-anchor="middle" class="small">
+      Any mismatch fails closed
+    </text>
+    <rect
+      x="860"
+      y="170"
+      width="230"
+      height="82"
+      rx="12"
+      class="node process"
+    />
+    <text x="975" y="202" text-anchor="middle" class="label">
+      Operator console
+    </text>
+    <text x="975" y="224" text-anchor="middle" class="small">
+      Attributable human escalation
+    </text>
+    <rect
+      x="600"
+      y="340"
+      width="210"
+      height="98"
+      rx="12"
+      class="node process"
+    />
+    <text x="705" y="370" text-anchor="middle" class="label">
+      Publication gate
+    </text>
+    <text x="705" y="392" text-anchor="middle" class="small">
+      Funding + approval revalidated
+    </text>
+    <text x="705" y="412" text-anchor="middle" class="small">
+      Explicit publish required
+    </text>
+    <rect
+      x="860"
+      y="340"
+      width="230"
+      height="98"
+      rx="12"
+      class="node external"
+    />
+    <text x="975" y="370" text-anchor="middle" class="label">
+      Human worker experience
+    </text>
+    <text x="975" y="392" text-anchor="middle" class="small">
+      Discover · accept · complete
+    </text>
+    <text x="975" y="412" text-anchor="middle" class="small">
+      Structured evidence only
+    </text>
+    <rect
+      x="370"
+      y="490"
+      width="720"
+      height="70"
+      rx="12"
+      class="node storage"
+    />
+    <text x="730" y="519" text-anchor="middle" class="label">
+      Private control plane
+    </text>
+    <text x="730" y="541" text-anchor="middle" class="small">
+      Identity · payments · audit/outbox · fraud controls · policy governance ·
+      observability
+    </text>
+
+    <path d="M162 228 L162 275" class="edge" marker-end="url(#arrow)" />
+    <path d="M162 371 L162 420" class="edge" marker-end="url(#arrow)" />
+    <path
+      d="M275 323 L330 323 L330 211 L370 211"
+      class="edge"
+      marker-end="url(#arrow)"
+    />
+    <path d="M550 211 L600 211" class="edge" marker-end="url(#arrow)" />
+    <path d="M810 211 L860 211" class="edge" marker-end="url(#arrow)" />
+    <path d="M705 272 L705 340" class="edge" marker-end="url(#arrow)" />
+    <path d="M810 389 L860 389" class="edge" marker-end="url(#arrow)" />
+    <path d="M460 252 L460 490" class="edge" marker-end="url(#arrow)" />
+    <path d="M975 438 L975 490" class="edge" marker-end="url(#arrow)" />
+    <path
+      d="M975 252 L975 300 L775 300 L775 272"
+      class="edge"
+      marker-end="url(#arrow)"
+    />
+    <text x="320" y="311" text-anchor="middle" class="small">HTTPS</text>
+    <text x="820" y="199" class="small">Escalation</text>
+    <text x="820" y="377" class="small">Approved task</text>
+    <text x="718" y="316" class="small">Exact approval</text>
+
+    <rect x="20" y="620" width="18" height="18" rx="4" class="node input" />
+    <text x="47" y="634" class="small">Public developer surface</text>
+    <rect x="230" y="620" width="18" height="18" rx="4" class="node risk" />
+    <text x="257" y="634" class="small">Trust boundary</text>
+    <rect x="390" y="620" width="18" height="18" rx="4" class="node storage" />
+    <text x="417" y="634" class="small">Private data/control plane</text>
+    <text x="20" y="668" class="small">
+      Gift cards, credential collection, fraud, and other prohibited task
+      classes are rejected; timeout or stale review never publishes.
+    </text>
+  </svg>
+</main>

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.humanleg-ai/humanleg",
+  "title": "HumanLeg.ai",
+  "description": "Hand bounded tasks from AI agents to trusted humans.",
+  "websiteUrl": "https://humanleg.ai",
+  "repository": {
+    "url": "https://github.com/humanleg-ai/humanleg",
+    "source": "github",
+    "id": "1452768481",
+    "subfolder": "packages/mcp-server"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "@humanleg/mcp-server",
+      "version": "0.1.0",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "HUMANLEG_API_URL",
+          "description": "HumanLeg API base URL",
+          "isRequired": false,
+          "default": "http://127.0.0.1:8787"
+        },
+        {
+          "name": "HUMANLEG_AGENT_TOKEN",
+          "description": "Least-privilege HumanLeg agent token",
+          "isRequired": true,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@humanleg/sandbox",
+  "version": "0.1.0",
+  "description": "Synthetic in-memory HumanLeg.ai sandbox API for local development.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/server.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js"
+  },
+  "bin": {
+    "humanleg-sandbox": "dist/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/humanleg-ai/humanleg.git",
+    "directory": "packages/sandbox"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
