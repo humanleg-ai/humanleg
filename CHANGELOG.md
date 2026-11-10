@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented here.
 
+## [0.1.1] - 2026-11-10
+
+### Fixed
+
+- Added the registry-required `mcpName` package metadata for official MCP Registry ownership verification.
+
 ## [0.1.0] - Unreleased
 
 ### Added

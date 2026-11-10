@@ -14,7 +14,7 @@ if (!token) {
 }
 
 const client = new HumanLegClient({ baseUrl, token });
-const server = new McpServer({ name: "humanleg", version: "0.1.0" });
+const server = new McpServer({ name: "humanleg", version: "0.1.1" });
 
 function result(value: unknown) {
   return {

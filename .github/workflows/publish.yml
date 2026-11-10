@@ -42,15 +42,33 @@ jobs:
       - run: npm ci
       - run: npm run check
       - name: Publish TypeScript SDK
-        run: npm publish --workspace @humanleg/sdk --access public --provenance
+        run: |
+          version=$(node -p "require('./packages/sdk/package.json').version")
+          if npm view "@humanleg/sdk@$version" version >/dev/null 2>&1; then
+            echo "@humanleg/sdk@$version is already published"
+          else
+            npm publish --workspace @humanleg/sdk --access public --provenance
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish sandbox
-        run: npm publish --workspace @humanleg/sandbox --access public --provenance
+        run: |
+          version=$(node -p "require('./packages/sandbox/package.json').version")
+          if npm view "@humanleg/sandbox@$version" version >/dev/null 2>&1; then
+            echo "@humanleg/sandbox@$version is already published"
+          else
+            npm publish --workspace @humanleg/sandbox --access public --provenance
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish MCP server
-        run: npm publish --workspace @humanleg/mcp-server --access public --provenance
+        run: |
+          version=$(node -p "require('./packages/mcp-server/package.json').version")
+          if npm view "@humanleg/mcp-server@$version" version >/dev/null 2>&1; then
+            echo "@humanleg/mcp-server@$version is already published"
+          else
+            npm publish --workspace @humanleg/mcp-server --access public --provenance
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
@@ -80,9 +98,10 @@ jobs:
       - uses: actions/checkout@v5
       - name: Wait for the public npm package
         run: |
+          version=$(node -p "require('./packages/mcp-server/package.json').version")
           for attempt in $(seq 1 50); do
-            version=$(npm view @humanleg/mcp-server@0.1.0 version 2>/dev/null || true)
-            if [ "$version" = "0.1.0" ]; then
+            published=$(npm view "@humanleg/mcp-server@$version" version 2>/dev/null || true)
+            if [ "$published" = "$version" ]; then
               exit 0
             fi
             echo "npm propagation pending ($attempt/50)"
