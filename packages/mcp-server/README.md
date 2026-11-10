@@ -1,5 +1,23 @@
 # @humanleg/mcp-server
 
+Connect AI agents to the HumanLeg synthetic sandbox over local stdio or hosted Streamable HTTP.
+The public surface exposes quote, task creation and read-only review tools only; funding and
+publication stay disabled unless an operator explicitly enables the local-only settlement demo.
+
+## Hosted Remote MCP
+
+```json
+{
+  "mcpServers": {
+    "humanleg": {
+      "url": "https://humanleg.ai/mcp"
+    }
+  }
+}
+```
+
+The hosted endpoint is synthetic-only and does not dispatch real humans or move real funds.
+
 MCP server for explicit HumanLeg.ai agent actions.
 
 ```json

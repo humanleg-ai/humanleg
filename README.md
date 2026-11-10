@@ -15,6 +15,16 @@ It does not contain production marketplace, identity, fraud, payment or operator
 View the standalone [platform architecture diagram](docs/architecture.html) for the public/private
 trust boundary and end-to-end task flow.
 
+## Try the hosted sandbox
+
+- Developer guide: <https://humanleg.ai/developers>
+- Remote MCP: `https://humanleg.ai/mcp`
+- REST base URL: `https://humanleg.ai/sandbox`
+- Public synthetic token: `sandbox-agent-token`
+
+The hosted sandbox is bounded, in-memory and synthetic. It exposes quoting, task creation and
+exact-content compliance review, but it cannot fund, publish or dispatch a real task.
+
 ## Five-minute quickstart
 
 Requirements: Node.js 20+.

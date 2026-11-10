@@ -36,9 +36,17 @@ type Task = {
 
 const port = Number(process.env.PORT ?? 8787);
 const token = process.env.HUMANLEG_AGENT_TOKEN ?? "sandbox-agent-token";
+const settlementEnabled = process.env.HUMANLEG_ENABLE_SETTLEMENT === "true";
+const maxBodyBytes = Number(process.env.HUMANLEG_MAX_BODY_BYTES ?? 64 * 1024);
+const maxObjects = Number(process.env.HUMANLEG_MAX_OBJECTS ?? 500);
+const maxEvents = Number(process.env.HUMANLEG_MAX_EVENTS ?? 2_000);
+const requestsPerMinute = Number(
+  process.env.HUMANLEG_REQUESTS_PER_MINUTE ?? 120,
+);
 const tasks = new Map<string, Task>();
 const quotes = new Map<string, Record<string, unknown>>();
 const events: Array<Record<string, unknown>> = [];
+const requestWindows = new Map<string, { count: number; resetAt: number }>();
 
 function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -104,6 +112,8 @@ function json(response: ServerResponse, status: number, body: unknown): void {
   response.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "access-control-allow-origin": "*",
+    "cache-control": "no-store",
+    "x-content-type-options": "nosniff",
   });
   response.end(JSON.stringify(body));
 }
@@ -127,12 +137,46 @@ async function body(
   request: IncomingMessage,
 ): Promise<Record<string, unknown>> {
   const chunks: Buffer[] = [];
-  for await (const chunk of request) chunks.push(Buffer.from(chunk));
+  let bytes = 0;
+  for await (const chunk of request) {
+    const buffer = Buffer.from(chunk);
+    bytes += buffer.byteLength;
+    if (bytes > maxBodyBytes)
+      throw new Error("Request body exceeds sandbox limit.");
+    chunks.push(buffer);
+  }
   if (chunks.length === 0) return {};
   return JSON.parse(Buffer.concat(chunks).toString("utf8")) as Record<
     string,
     unknown
   >;
+}
+
+function requestKey(request: IncomingMessage): string {
+  const forwarded = request.headers["x-forwarded-for"];
+  if (typeof forwarded === "string") return forwarded.split(",")[0]!.trim();
+  return request.socket.remoteAddress ?? "unknown";
+}
+
+function withinRateLimit(request: IncomingMessage): boolean {
+  const key = requestKey(request);
+  const now = Date.now();
+  const current = requestWindows.get(key);
+  if (!current || current.resetAt <= now) {
+    requestWindows.set(key, { count: 1, resetAt: now + 60_000 });
+    return true;
+  }
+  current.count += 1;
+  return current.count <= requestsPerMinute;
+}
+
+function setBounded<T>(map: Map<string, T>, key: string, value: T): void {
+  map.set(key, value);
+  while (map.size > maxObjects) {
+    const oldest = map.keys().next().value as string | undefined;
+    if (!oldest) break;
+    map.delete(oldest);
+  }
 }
 
 function authenticate(
@@ -175,6 +219,7 @@ function emit(type: string, task: Task): void {
     taskId: task.id,
     at: new Date().toISOString(),
   });
+  if (events.length > maxEvents) events.splice(0, events.length - maxEvents);
 }
 
 const server = createServer(async (request, response) => {
@@ -193,8 +238,34 @@ const server = createServer(async (request, response) => {
       });
       return response.end();
     }
+    if (!withinRateLimit(request)) {
+      return problem(
+        response,
+        429,
+        "rate_limit_exceeded",
+        "Synthetic sandbox request limit exceeded; retry in one minute.",
+      );
+    }
     if (method === "GET" && url.pathname === "/health") {
       return json(response, 200, { status: "ok", mode: "synthetic-sandbox" });
+    }
+    if (method === "GET" && url.pathname === "/v1/capabilities") {
+      return json(response, 200, {
+        name: "HumanLeg.ai public synthetic sandbox",
+        mode: "synthetic-sandbox",
+        dispatchesRealHumans: false,
+        movesRealFunds: false,
+        settlementSimulationEnabled: settlementEnabled,
+        categories: ["REMOTE_VERIFICATION"],
+        tools: ["quote", "create_task", "get_task", "get_compliance_review"],
+        constraints: {
+          country: "AU",
+          physicalPresenceRequired: false,
+          minimumSyntheticRewardUsdc: 20,
+        },
+        documentation: "https://humanleg.ai/developers",
+        mcp: "https://humanleg.ai/mcp",
+      });
     }
     if (!authenticate(request, response)) return;
 
@@ -218,7 +289,7 @@ const server = createServer(async (request, response) => {
         feeAtomic: Math.max(3_000_000, Math.ceil(rewardAtomic * 0.15)),
         expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       };
-      quotes.set(String(quote.id), quote);
+      setBounded(quotes, String(quote.id), quote);
       return json(response, 201, quote);
     }
 
@@ -263,7 +334,7 @@ const server = createServer(async (request, response) => {
       }
       const review = reviewTask(base);
       const task: Task = { ...base, ...review, status: "DRAFT", funded: false };
-      tasks.set(task.id, task);
+      setBounded(tasks, task.id, task);
       emit("task.created", task);
       return json(response, 201, task);
     }
@@ -320,6 +391,14 @@ const server = createServer(async (request, response) => {
       }
       if (method === "POST" && action === "funding-intents") {
         if (!requireIdempotency(request, response)) return;
+        if (!settlementEnabled) {
+          return problem(
+            response,
+            403,
+            "settlement_disabled",
+            "Funding is not available in the public developer sandbox.",
+          );
+        }
         if (task.complianceReview.decision !== "APPROVE") {
           return problem(
             response,
@@ -340,6 +419,14 @@ const server = createServer(async (request, response) => {
       }
       if (method === "POST" && action === "open") {
         if (!requireIdempotency(request, response)) return;
+        if (!settlementEnabled) {
+          return problem(
+            response,
+            403,
+            "publication_disabled",
+            "Publication is not available in the public developer sandbox.",
+          );
+        }
         const input = await body(request);
         const review = task.complianceReview;
         if (
@@ -392,6 +479,12 @@ const server = createServer(async (request, response) => {
 
     return problem(response, 404, "route_not_found", "Route not found.");
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Request body exceeds sandbox limit."
+    ) {
+      return problem(response, 413, "request_too_large", error.message);
+    }
     return problem(
       response,
       500,

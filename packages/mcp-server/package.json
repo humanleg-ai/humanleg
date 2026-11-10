@@ -1,6 +1,6 @@
 {
   "name": "@humanleg/mcp-server",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "mcpName": "io.github.humanleg-ai/humanleg",
   "description": "MCP server that lets AI agents hand bounded tasks to HumanLeg.ai.",
   "license": "Apache-2.0",
@@ -20,6 +20,7 @@
   "dependencies": {
     "@humanleg/sdk": "0.1.0",
     "@modelcontextprotocol/sdk": "^1.24.3",
+    "express-rate-limit": "^8.2.1",
     "zod": "^4.1.13"
   },
   "repository": {

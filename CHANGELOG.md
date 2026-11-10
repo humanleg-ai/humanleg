@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented here.
 
+## [0.2.0] - Unreleased
+
+### Added
+
+- Hosted synthetic Remote MCP transport at `https://humanleg.ai/mcp`.
+- Agent-discovery metadata and developer quickstarts for zero-install sandbox evaluation.
+
 ## [0.1.1] - 2026-11-10
 
 ### Fixed

@@ -10,13 +10,13 @@
     "id": "1452768481",
     "subfolder": "packages/mcp-server"
   },
-  "version": "0.1.1",
+  "version": "0.2.0",
   "packages": [
     {
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "@humanleg/mcp-server",
-      "version": "0.1.1",
+      "version": "0.2.0",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"
@@ -35,6 +35,12 @@
           "isSecret": true
         }
       ]
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://humanleg.ai/mcp"
     }
   ]
 }

@@ -2,10 +2,14 @@
   "openapi": "3.1.0",
   "info": {
     "title": "HumanLeg.ai Public Agent API",
-    "version": "0.1.1",
-    "description": "Public agent-facing sandbox API. Exact-content compliance approval is required before publication."
+    "version": "0.2.0",
+    "description": "Synthetic public developer sandbox. It dispatches no real humans and moves no real funds. Funding and publication endpoints are disabled on the hosted service."
   },
   "servers": [
+    {
+      "url": "https://humanleg.ai/sandbox",
+      "description": "Hosted synthetic sandbox"
+    },
     {
       "url": "http://127.0.0.1:8787",
       "description": "Local synthetic sandbox"
@@ -21,6 +25,17 @@
     "schemas": {}
   },
   "paths": {
+    "/v1/capabilities": {
+      "get": {
+        "summary": "Describe the public synthetic sandbox",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Sandbox capabilities and safety constraints"
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "responses": {
