@@ -1,0 +1,66 @@
+name: publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type publish to confirm an external release"
+        required: true
+        type: string
+      npm:
+        description: "Publish the three npm packages"
+        required: true
+        default: true
+        type: boolean
+      pypi:
+        description: "Publish the Python SDK to PyPI"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  npm:
+    if: inputs.confirmation == 'publish' && inputs.npm
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - name: Publish TypeScript SDK
+        run: npm publish --workspace @humanleg/sdk --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish sandbox
+        run: npm publish --workspace @humanleg/sandbox --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish MCP server
+        run: npm publish --workspace @humanleg/mcp-server --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  pypi:
+    if: inputs.confirmation == 'publish' && inputs.pypi
+    runs-on: ubuntu-latest
+    environment: pypi
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade build
+      - run: python -m unittest discover -s python/tests -v
+      - run: python -m build python
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
